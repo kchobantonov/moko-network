@@ -4,7 +4,6 @@
 
 package dev.icerock.moko.network.errors
 
-import dev.icerock.moko.errors.MR
 import dev.icerock.moko.errors.mappers.ExceptionMappersStorage
 import dev.icerock.moko.network.SSLExceptionType
 import dev.icerock.moko.network.exceptions.ErrorException
@@ -12,6 +11,7 @@ import dev.icerock.moko.network.exceptions.ValidationException
 import dev.icerock.moko.network.getSSLExceptionType
 import dev.icerock.moko.network.isNetworkConnectionError
 import dev.icerock.moko.network.isSSLException
+import dev.icerock.moko.resources.StringResource
 import dev.icerock.moko.resources.desc.CompositionStringDesc
 import dev.icerock.moko.resources.desc.ResourceFormatted
 import dev.icerock.moko.resources.desc.StringDesc
@@ -36,6 +36,7 @@ fun ExceptionMappersStorage.registerAllNetworkMappers(
         mapper = {
             getSSLExceptionStringDescMapper(
                 sslException = it,
+                defaultErrorText = errorsTexts.defaultErrorText,
                 sslNetworkErrorsTexts = errorsTexts.sslNetworkErrorsTexts
             )
         }
@@ -45,6 +46,7 @@ fun ExceptionMappersStorage.registerAllNetworkMappers(
     ).register<ErrorException, StringDesc> {
         getNetworkErrorExceptionStringDescMapper(
             errorException = it,
+            defaultErrorText = errorsTexts.defaultErrorText,
             httpNetworkErrorsTexts = errorsTexts.httpNetworkErrorsTexts
         )
     }.register(::validationExceptionStringDescMapper)
@@ -55,6 +57,7 @@ fun ExceptionMappersStorage.registerAllNetworkMappers(
  */
 private fun getNetworkErrorExceptionStringDescMapper(
     errorException: ErrorException,
+    defaultErrorText: StringResource,
     httpNetworkErrorsTexts: HttpNetworkErrorsTexts
 ): StringDesc {
     val httpStatusCode = errorException.httpStatusCode
@@ -69,7 +72,7 @@ private fun getNetworkErrorExceptionStringDescMapper(
             )
         }
 
-        else -> MR.strings.moko_errors_unknownError.desc()
+        else -> defaultErrorText.desc()
     }
 }
 
@@ -79,6 +82,7 @@ private fun getNetworkErrorExceptionStringDescMapper(
 @Suppress("ComplexMethod")
 private fun getSSLExceptionStringDescMapper(
     sslException: Throwable,
+    defaultErrorText: StringResource,
     sslNetworkErrorsTexts: SSLNetworkErrorsTexts
 ): StringDesc {
     return when (sslException.getSSLExceptionType()) {
@@ -90,7 +94,7 @@ private fun getSSLExceptionStringDescMapper(
         SSLExceptionType.ClientCertificateRejected -> sslNetworkErrorsTexts.clientCertificateRejected.desc()
         SSLExceptionType.ClientCertificateRequired -> sslNetworkErrorsTexts.clientCertificateRequired.desc()
         SSLExceptionType.CannotLoadFromNetwork -> sslNetworkErrorsTexts.cannotLoadFromNetwork.desc()
-        else -> MR.strings.moko_errors_unknownError.desc()
+        else -> defaultErrorText.desc()
     }
 }
 
